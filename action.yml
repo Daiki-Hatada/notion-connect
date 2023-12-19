@@ -1,10 +1,9 @@
 name: 'Notion Connect'
 description: 'Greet someone and record the time'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  token:
+    description: 'GitHub token'
     required: true
-    default: 'World'
   notion-token:
     description: 'Notion token'
     required: true
