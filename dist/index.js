@@ -34048,6 +34048,7 @@ function main() {
         })
             .then(({ data }) => data.map(({ body }) => body));
         const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
+            console.log({ body });
             const match = body === null || body === void 0 ? void 0 : body.match(notion_2.notionUrlRegex);
             return match && match[0] ? match[0] : [];
         });
@@ -34131,11 +34132,12 @@ _Notion_client = { value: undefined };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.notionUrlRegex = exports.urlToPageId = void 0;
 const urlToPageId = (url) => {
+    var _a;
     const regex = /^https:\/\/www.notion.so\/.*$/;
     if (!url.match(regex))
         throw new Error('Invalid Notion URL.');
     const urlObj = new URL(url);
-    const pageId = urlObj.pathname.split('/').pop();
+    const pageId = (_a = urlObj.pathname.split('/').pop()) === null || _a === void 0 ? void 0 : _a.slice(-32);
     if (!pageId)
         throw new Error('Page ID not found.');
     return pageId;

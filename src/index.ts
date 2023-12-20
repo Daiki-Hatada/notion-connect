@@ -18,6 +18,7 @@ async function main() {
     })
     .then(({ data }) => data.map(({ body }) => body))
   const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
+    console.log({ body })
     const match = body?.match(notionUrlRegex)
     return match && match[0] ? match[0] : []
   })
