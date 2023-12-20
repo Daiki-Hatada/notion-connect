@@ -4,17 +4,16 @@ import { notionUrlRegex, urlToPageId } from './utils/notion'
 import * as github from '@actions/github'
 
 async function main() {
-  if (!github.context.payload.pull_request?.number) {
+  if (!github.context.payload.pull_request) {
     throw new Error('This action is only available on pull_request event.')
   }
   const notion = new Notion(input.notionToken)
   const octokit = github.getOctokit(input.token)
   const pullRequestBody = github.context.payload.pull_request.body
-  const comments = await octokit.rest.pulls
-    .listReviewComments({
+  const comments = await octokit.rest.issues.listComments({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      pull_number: github.context.payload.pull_request.number,
+      issue_number: github.context.payload.pull_request.number,
     })
     .then(({ data }) => data.map(({ body }) => body))
   const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {

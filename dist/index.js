@@ -34032,19 +34032,17 @@ const notion_1 = __nccwpck_require__(4264);
 const notion_2 = __nccwpck_require__(6154);
 const github = __importStar(__nccwpck_require__(5438));
 function main() {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        if (!((_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number)) {
+        if (!github.context.payload.pull_request) {
             throw new Error('This action is only available on pull_request event.');
         }
         const notion = new notion_1.Notion(github_1.input.notionToken);
         const octokit = github.getOctokit(github_1.input.token);
         const pullRequestBody = github.context.payload.pull_request.body;
-        const comments = yield octokit.rest.pulls
-            .listReviewComments({
+        const comments = yield octokit.rest.issues.listComments({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            pull_number: github.context.payload.pull_request.number,
+            issue_number: github.context.payload.pull_request.number,
         })
             .then(({ data }) => data.map(({ body }) => body));
         const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
