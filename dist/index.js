@@ -1,4 +1,4 @@
-/******/ (() => { // webpackBootstrap
+require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 7351:
@@ -34032,25 +34032,29 @@ const notion_1 = __nccwpck_require__(4264);
 const notion_2 = __nccwpck_require__(6154);
 const github = __importStar(__nccwpck_require__(5438));
 function main() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
+        if (!((_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number)) {
+            throw new Error('This action is only available on pull_request event.');
+        }
         const notion = new notion_1.Notion(github_1.input.notionToken);
         const octokit = github.getOctokit(github_1.input.token);
-        const pullRequest = yield octokit.rest.pulls.get().then(({ data }) => data);
+        const pullRequestBody = github.context.payload.pull_request.body;
         const comments = yield octokit.rest.pulls
             .listReviewComments({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            pull_number: pullRequest.number,
+            pull_number: github.context.payload.pull_request.number,
         })
             .then(({ data }) => data.map(({ body }) => body));
-        const urlCandidates = [pullRequest.body, ...comments].flatMap((body) => {
+        const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
             const match = body === null || body === void 0 ? void 0 : body.match(notion_2.notionUrlRegex);
             return match && match[0] ? match[0] : [];
         });
         if (!urlCandidates || !urlCandidates[0])
             throw new Error('Notion URL not found.');
         const pageId = (0, notion_2.urlToPageId)(urlCandidates[0]);
-        const response = yield notion.client.pages.update({
+        yield notion.client.pages.update({
             page_id: pageId,
             properties: {
                 [github_1.input.property]: {
@@ -34061,7 +34065,6 @@ function main() {
                 },
             },
         });
-        console.log('Got response:', response);
     });
 }
 main()
@@ -36065,3 +36068,4 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	
 /******/ })()
 ;
+//# sourceMappingURL=index.js.map

@@ -9,24 +9,15 @@ async function main() {
   }
   const notion = new Notion(input.notionToken)
   const octokit = github.getOctokit(input.token)
-  console.log({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    pull_number: github.context.payload.pull_request.number,
-  })
-  const pullRequest = await octokit.rest.pulls.get({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    pull_number: github.context.payload.pull_request.number,
-  }).then(({ data }) => data)
+  const pullRequestBody = github.context.payload.pull_request.body
   const comments = await octokit.rest.pulls
     .listReviewComments({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      pull_number: pullRequest.number,
+      pull_number: github.context.payload.pull_request.number,
     })
     .then(({ data }) => data.map(({ body }) => body))
-  const urlCandidates = [pullRequest.body, ...comments].flatMap((body) => {
+  const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
     const match = body?.match(notionUrlRegex)
     return match && match[0] ? match[0] : []
   })
