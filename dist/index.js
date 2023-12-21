@@ -34129,19 +34129,25 @@ _Notion_client = { value: undefined };
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.notionUrlRegex = exports.urlToPageId = void 0;
+const regex = /^https:\/\/(www.)?notion.so\/.*$/;
 const urlToPageId = (url) => {
     var _a;
-    const regex = /^https:\/\/www.notion.so\/.*$/;
-    if (!url.match(regex))
-        throw new Error('Invalid Notion URL.');
-    const urlObj = new URL(url);
-    const pageId = (_a = urlObj.pathname.split('/').pop()) === null || _a === void 0 ? void 0 : _a.slice(-32);
+    const path = (() => {
+        if (url.match(regex)) {
+            const urlObj = new URL(url);
+            return urlObj.pathname;
+        }
+        else {
+            return url.split('?')[0];
+        }
+    })();
+    const pageId = (_a = path.split('/').pop()) === null || _a === void 0 ? void 0 : _a.slice(-32);
     if (!pageId)
         throw new Error('Page ID not found.');
     return pageId;
 };
 exports.urlToPageId = urlToPageId;
-exports.notionUrlRegex = /(?<=^https:\/\/(www.)?notion.so\/)(.*)/;
+exports.notionUrlRegex = /(?<=https:\/\/(www.)?notion.so\/)(.*)/;
 
 
 /***/ }),
