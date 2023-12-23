@@ -9,7 +9,9 @@
     "start": "ts-node src/index.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "package": "ncc build src/index.ts --source-map --license licenses.txt",
+    "package:watch": "npm run package -- --watch"
   },
   "keywords": [],
   "author": "Daiki Hatada",

@@ -33981,6 +33981,9 @@ exports.input = {
     get property() {
         return (0, core_1.getInput)('property', { required: true });
     },
+    get propertyType() {
+        return (0, core_1.getInput)('property-type', { required: true });
+    },
     get value() {
         return (0, core_1.getInput)('value', { required: true });
     },
@@ -34046,23 +34049,16 @@ function main() {
         })
             .then(({ data }) => data.map(({ body }) => body));
         const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
-            console.log({ body });
             const match = body === null || body === void 0 ? void 0 : body.match(notion_2.notionUrlRegex);
             return match && match[0] ? match[0] : [];
         });
         if (!urlCandidates || !urlCandidates[0])
             throw new Error('Notion URL not found.');
         const pageId = (0, notion_2.urlToPageId)(urlCandidates[0]);
+        const value = (0, notion_2.composeUpdatePageBodyValue)(github_1.input);
         yield notion.client.pages.update({
             page_id: pageId,
-            properties: {
-                [github_1.input.property]: {
-                    type: 'select',
-                    select: {
-                        name: github_1.input.value,
-                    },
-                },
-            },
+            properties: value,
         });
     });
 }
@@ -34128,7 +34124,7 @@ _Notion_client = { value: undefined };
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.notionUrlRegex = exports.urlToPageId = void 0;
+exports.composeUpdatePageBodyValue = exports.notionUrlRegex = exports.urlToPageId = void 0;
 const regex = /^https:\/\/(www.)?notion.so\/.*$/;
 const urlToPageId = (url) => {
     var _a;
@@ -34148,6 +34144,50 @@ const urlToPageId = (url) => {
 };
 exports.urlToPageId = urlToPageId;
 exports.notionUrlRegex = /(?<=https:\/\/(www.)?notion.so\/)(.*)/;
+const composeUpdatePageBodyValue = (input) => {
+    switch (input.propertyType) {
+        case 'title':
+            return {
+                [input.property]: {
+                    type: 'title',
+                    title: [
+                        {
+                            type: 'text',
+                            text: {
+                                content: input.value,
+                            },
+                        },
+                    ],
+                }
+            };
+        case 'rich_text':
+            return {
+                [input.property]: {
+                    type: 'rich_text',
+                    rich_text: [
+                        {
+                            type: 'text',
+                            text: {
+                                content: input.value,
+                            },
+                        },
+                    ],
+                }
+            };
+        case 'status':
+            return {
+                [input.property]: {
+                    type: 'status',
+                    status: {
+                        name: input.value,
+                    },
+                }
+            };
+        default:
+            throw new Error(`Invalid property type: ${input.propertyType}`);
+    }
+};
+exports.composeUpdatePageBodyValue = composeUpdatePageBodyValue;
 
 
 /***/ }),

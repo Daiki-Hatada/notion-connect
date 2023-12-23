@@ -10,6 +10,9 @@ export const input = {
   get property() {
     return getInput('property', { required: true })
   },
+  get propertyType() {
+    return getInput('property-type', { required: true })
+  },
   get value() {
     return getInput('value', { required: true })
   },
