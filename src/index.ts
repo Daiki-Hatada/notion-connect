@@ -18,7 +18,7 @@ async function main() {
     .then(({ data }) => data.map(({ body }) => body))
   const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
     const match = body?.match(notionUrlRegex)
-    return match && match[0] ? match[0] : []
+    return match?.[0] ? match[0] : []
   })
   if (!urlCandidates || !urlCandidates[0]) throw new Error('Notion URL not found.')
   const pageId = urlToPageId(urlCandidates[0])
