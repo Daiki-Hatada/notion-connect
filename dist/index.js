@@ -33963,6 +33963,24 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6388:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IgnorableError = void 0;
+class IgnorableError extends Error {
+    name = "ValidationError";
+    constructor(message, options) {
+        super(message, options);
+    }
+}
+exports.IgnorableError = IgnorableError;
+
+
+/***/ }),
+
 /***/ 978:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -34020,49 +34038,47 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const error_1 = __nccwpck_require__(6388);
 const github_1 = __nccwpck_require__(978);
 const notion_1 = __nccwpck_require__(4264);
 const notion_2 = __nccwpck_require__(6154);
 const github = __importStar(__nccwpck_require__(5438));
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!github.context.payload.pull_request) {
-            throw new Error('This action is only available on pull_request event.');
-        }
-        const notion = new notion_1.Notion(github_1.input.notionToken);
-        const octokit = github.getOctokit(github_1.input.token);
-        const pullRequestBody = github.context.payload.pull_request.body;
-        const comments = yield octokit.rest.issues.listComments({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            issue_number: github.context.payload.pull_request.number,
-        })
-            .then(({ data }) => data.map(({ body }) => body));
-        const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
-            const match = body === null || body === void 0 ? void 0 : body.match(notion_2.notionUrlRegex);
-            return match && match[0] ? match[0] : [];
-        });
-        if (!urlCandidates || !urlCandidates[0])
-            throw new Error('Notion URL not found.');
-        const pageId = (0, notion_2.urlToPageId)(urlCandidates[0]);
-        const value = (0, notion_2.composeUpdatePageBodyValue)(github_1.input);
-        yield notion.client.pages.update({
-            page_id: pageId,
-            properties: value,
-        });
+async function main() {
+    if (!github.context.payload.pull_request) {
+        throw new Error('This action is only available on pull_request event.');
+    }
+    const notion = new notion_1.Notion(github_1.input.notionToken);
+    const octokit = github.getOctokit(github_1.input.token);
+    const pullRequestBody = github.context.payload.pull_request.body;
+    const comments = await octokit.rest.issues.listComments({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: github.context.payload.pull_request.number,
+    })
+        .then(({ data }) => data.map(({ body }) => body));
+    const urlCandidates = [pullRequestBody, ...comments].flatMap((body) => {
+        const match = body?.match(notion_2.notionUrlRegex);
+        return match?.[0] ? match[0] : [];
+    });
+    if (!urlCandidates || !urlCandidates[0])
+        throw new error_1.IgnorableError('Notion URL not found.');
+    const pageId = (0, notion_2.urlToPageId)(urlCandidates[0]);
+    const value = (0, notion_2.composeUpdatePageBodyValue)(github_1.input);
+    await notion.client.pages.update({
+        page_id: pageId,
+        properties: value,
     });
 }
-main()
+async function run() {
+    main().catch((err) => {
+        if (!(err instanceof error_1.IgnorableError)) {
+            console.warn(err);
+            throw err;
+        }
+    });
+}
+run()
     .then(() => process.exit(0))
     .catch((err) => {
     console.error(err);
@@ -34073,61 +34089,48 @@ main()
 /***/ }),
 
 /***/ 4264:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _a, _Notion_client;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Notion = void 0;
 const client_1 = __nccwpck_require__(324);
 class Notion {
+    static #client = undefined;
     static initClient(token) {
-        __classPrivateFieldSet(_a, _a, new client_1.Client({
+        Notion.#client = new client_1.Client({
             auth: token,
-        }), "f", _Notion_client);
+        });
     }
     static get client() {
-        if (__classPrivateFieldGet(_a, _a, "f", _Notion_client) === undefined)
+        if (Notion.#client === undefined)
             throw new Error('Notion client not initialized.');
-        return __classPrivateFieldGet(_a, _a, "f", _Notion_client);
+        return Notion.#client;
     }
     constructor(token) {
-        _a.initClient(token);
+        Notion.initClient(token);
         return this;
     }
     get client() {
-        return _a.client;
+        return Notion.client;
     }
 }
 exports.Notion = Notion;
-_a = Notion;
-_Notion_client = { value: undefined };
 
 
 /***/ }),
 
 /***/ 6154:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.composeUpdatePageBodyValue = exports.notionUrlRegex = exports.urlToPageId = void 0;
+const error_1 = __nccwpck_require__(6388);
 const regex = /^https:\/\/(www.)?notion.so\/.*$/;
 const urlToPageId = (url) => {
-    var _a;
     const path = (() => {
         if (url.match(regex)) {
             const urlObj = new URL(url);
@@ -34137,9 +34140,9 @@ const urlToPageId = (url) => {
             return url.split('?')[0];
         }
     })();
-    const pageId = (_a = path.split('/').pop()) === null || _a === void 0 ? void 0 : _a.slice(-32);
+    const pageId = path.split('/').pop()?.slice(-32);
     if (!pageId)
-        throw new Error('Page ID not found.');
+        throw new error_1.IgnorableError('Page ID not found.');
     return pageId;
 };
 exports.urlToPageId = urlToPageId;

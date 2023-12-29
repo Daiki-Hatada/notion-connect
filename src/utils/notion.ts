@@ -1,3 +1,4 @@
+import { IgnorableError } from "../error"
 import { UpdatePageBodyValue } from "../types/notion.types"
 
 const regex = /^https:\/\/(www.)?notion.so\/.*$/
@@ -12,7 +13,7 @@ export const urlToPageId = (url: string): string => {
     }
   })()
   const pageId = path.split('/').pop()?.slice(-32)
-  if (!pageId) throw new Error('Page ID not found.')
+  if (!pageId) throw new IgnorableError('Page ID not found.')
   return pageId
 }
 

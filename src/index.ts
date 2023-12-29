@@ -1,3 +1,4 @@
+import { IgnorableError } from './error';
 import { input } from './github'
 import { Notion } from './libs/notion'
 import {notionUrlRegex, urlToPageId, composeUpdatePageBodyValue} from './utils/notion';
@@ -20,7 +21,7 @@ async function main() {
     const match = body?.match(notionUrlRegex)
     return match?.[0] ? match[0] : []
   })
-  if (!urlCandidates || !urlCandidates[0]) throw new Error('Notion URL not found.')
+  if (!urlCandidates || !urlCandidates[0]) throw new IgnorableError('Notion URL not found.')
   const pageId = urlToPageId(urlCandidates[0])
   const value = composeUpdatePageBodyValue(input)
   await notion.client.pages.update({
@@ -29,7 +30,16 @@ async function main() {
   })
 }
 
-main()
+async function run() {
+  main().catch((err) => {
+    if (!(err instanceof IgnorableError)) {
+      console.warn(err)
+      throw err
+    }
+  })
+}
+
+run()
   .then(() => process.exit(0))
   .catch((err) => {
     console.error(err)
