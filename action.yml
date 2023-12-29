@@ -10,6 +10,9 @@ inputs:
   property:
     description: 'Notion page property'
     required: true
+  property-type:
+    description: 'Notion page property type'
+    required: true
   value:
     description: 'Notion page value'
     required: true
